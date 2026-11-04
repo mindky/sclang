@@ -1,0 +1,8 @@
+*.exe
+*.bak
+settings.ini
+custom_presets/
+.vs/
+bin/
+obj/
+release/
