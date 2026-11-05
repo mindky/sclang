@@ -279,12 +279,16 @@ namespace ScLang
         private readonly TextBox _rulesBox = new TextBox();
         private readonly TextBox _exactBox = new TextBox();
         private readonly ComboBox _snippet = new ComboBox();
+        private readonly ComboBox _snippetFilter = new ComboBox();
+        private List<SnippetItem> _allSnippets;
         private TabControl _tabs;
 
         private sealed class SnippetItem
         {
             public string Text;
+            public string InsertText;
             public bool IsExact;
+            public bool IsGroup;
             public string[] Lines;
 
             public override string ToString()
@@ -296,106 +300,173 @@ namespace ScLang
         private static List<SnippetItem> BuildFormGroups()
         {
             var groups = new List<SnippetItem>();
-            AddGroup(groups, "Рубеж", "Долг", new string[]
+            AddGroup(groups, "classic", "Рубеж", "Долг", new string[]
             {
                 "Рубеж => Долг", "Рубежа => Долга", "Рубежу => Долгу",
                 "Рубежем => Долгом", "Рубеже => Долге", "Рубежи => Долги", "Рубежом => Долгом"
             });
-            AddGroup(groups, "Заря", "Свобода", new string[]
+            AddGroup(groups, "classic", "Заря", "Свобода", new string[]
             {
                 "Заря => Свобода", "Зари => Свободы", "Заре => Свободе",
                 "Зарю => Свободу", "Зарей => Свободой", "Зарёй => Свободой"
             });
-            AddGroup(groups, "Обочина", "Кордон", new string[]
+            AddGroup(groups, "classic", "Обочина", "Кордон", new string[]
             {
                 "Обочина => Кордон", "Обочины => Кордона", "Обочине => Кордоне",
                 "Обочину => Кордон", "Обочиной => Кордоном", "Обочинам => Кордонам",
                 "Обочинами => Кордонами", "Обочинах => Кордонах"
             });
-            AddGroup(groups, "Приток", "Припять", new string[]
+            AddGroup(groups, "fun", "Приток", "Криветок", new string[]
             {
-                "Приток => Припять", "Притока => Припяти", "Притоку => Припяти",
-                "Притоком => Припятью", "Притоке => Припяти"
+                "Приток => Криветок", "Притока => Криветка", "Притоку => Криветку",
+                "Притоком => Криветком", "Притоке => Криветке"
             });
-            AddGroup(groups, "Институт", "Инсульт", new string[]
+            AddGroup(groups, "fun", "Институт", "Инсульт", new string[]
             {
                 "Институт => Инсульт", "Института => Инсульта", "Институту => Инсульту",
                 "Институтом => Инсультом", "Институте => Инсульте", "Институты => Инсульты"
             });
-            AddGroup(groups, "Кузня-11", "Кухня-11", new string[]
+            AddGroup(groups, "fun", "Кузня-11", "Кухня-11", new string[]
             {
                 "Кузня-11 => Кухня-11", "Кузни-11 => Кухни-11", "Кузне-11 => Кухне-11",
                 "Кузню-11 => Кухню-11", "Кузней-11 => Кухней-11"
             });
-            AddGroup(groups, "Барьер", "БульБуль", new string[]
+            AddGroup(groups, "fun", "Барьер", "БульБуль", new string[]
             {
                 "Барьер => БульБуль", "Барьера => БульБуля", "Барьеру => БульБулю",
                 "Барьером => БульБулем", "Барьере => БульБуле"
             });
-            AddGroup(groups, "Бестия", "Химера", new string[]
+            AddGroup(groups, "classic", "Бестия", "Химера", new string[]
             {
                 "Бестия => Химера", "Бестии => Химеры", "Бестию => Химеру", "Бестией => Химерой"
             });
-            AddGroup(groups, "Шавка", "Слепой пёс", new string[]
+            AddGroup(groups, "classic", "Шавка", "Слепой пёс", new string[]
             {
                 "Шавка => Слепой пёс", "Шавки => Слепого пса", "Шавку => Слепого пса",
                 "Шавкой => Слепым псом", "Шавок => Слепых псов"
             });
-            AddGroup(groups, "Хрюша", "Плоть", new string[]
+            AddGroup(groups, "classic", "Хрюша", "Плоть", new string[]
             {
                 "Хрюша => Плоть", "Хрюши => Плоти", "Хрюшу => Плоть",
                 "Хрюшей => Плотью", "Хрюш => Плотей"
             });
-            AddGroup(groups, "Упырь", "Кровосос", new string[]
+            AddGroup(groups, "classic", "Упырь", "Кровосос", new string[]
             {
                 "Упырь => Кровосос", "Упыря => Кровососа", "Упырю => Кровососу",
                 "Упырём => Кровососом", "Упыре => Кровососе", "Упыри => Кровососы", "Упырей => Кровососов"
             });
-            AddGroup(groups, "Дикая гончая", "Псевдопёс", new string[]
+            AddGroup(groups, "classic", "Дикая гончая", "Псевдопёс", new string[]
             {
                 "Дикая гончая => Псевдопёс", "Дикой гончей => Псевдопса", "Дикую гончую => Псевдопса",
                 "Дикие гончие => Псевдопсы", "Диких гончих => Псевдопсов"
             });
-            AddGroup(groups, "Бурелом", "Псевдогигант", new string[]
+            AddGroup(groups, "classic", "Бурелом", "Псевдогигант", new string[]
             {
                 "Бурелом => Псевдогигант", "Бурелома => Псевдогиганта", "Бурелому => Псевдогиганту",
                 "Буреломом => Псевдогигантом", "Буреломе => Псевдогиганте", "Буреломы => Псевдогиганты"
             });
-            AddGroup(groups, "Пси-гончая", "Пси-собака", new string[]
+            AddGroup(groups, "classic", "Пси-гончая", "Пси-собака", new string[]
             {
                 "Пси-гончая => Пси-собака", "Пси-гончей => Пси-собаки", "Пси-гончие => Пси-собаки"
             });
-            AddGroup(groups, "Шнырь", "Снорк", new string[]
+            AddGroup(groups, "classic", "Шнырь", "Снорк", new string[]
             {
                 "Шнырь => Снорк", "Шныря => Снорка", "Шнырю => Снорку",
                 "Шнырём => Снорком", "Шныре => Снорке", "Шныри => Снорки", "Шнырей => Снорков"
             });
-            AddGroup(groups, "Крыса", "Тушкан", new string[]
+            AddGroup(groups, "classic", "Крыса", "Тушкан", new string[]
             {
                 "Крыса => Тушкан", "Крысы => Тушкана", "Крысу => Тушкана",
                 "Крысой => Тушканом", "Крыс => Тушканов"
             });
-            AddGroup(groups, "Свалка техники", "Свалка", new string[]
+            AddGroup(groups, "classic", "Свалка техники", "Свалка", new string[]
             {
                 "Свалка техники => Свалка", "Свалки техники => Свалки", "Свалке техники => Свалке",
                 "Свалку техники => Свалку", "Свалкой техники => Свалкой"
             });
-            AddGroup(groups, "Храмовая топь", "Храбрая топь", new string[]
+            AddGroup(groups, "classic", "Храмовая топь", "Храбрая топь", new string[]
             {
                 "Храмовая топь => Храбрая топь", "Храмовой топи => Храброй топи",
                 "Храмовую топь => Храбрую топь", "Храмовой топью => Храброй топью"
             });
+            AddGroup(groups, "classic", "Разряд", "Электра", new string[]
+            {
+                "«Разряд» => «Электра»", "«Разряда» => «Электры»", "«Разряду» => «Электре»",
+                "«Разряде» => «Электре»", "«Разряды» => «Электры»", "«Разрядов» => «Электр»"
+            });
+            AddGroup(groups, "classic", "Зажигалка", "Жарка", new string[]
+            {
+                "«Зажигалка» => «Жарка»", "«Зажигалки» => «Жарки»", "«Зажигалку» => «Жарку»",
+                "«Зажигалкой» => «Жаркой»", "«Зажигалке» => «Жарке»"
+            });
+            AddGroup(groups, "classic", "Волчок", "Карусель", new string[]
+            {
+                "«Волчок» => «Карусель»", "«Волчка» => «Карусели»", "«Волчку» => «Карусели»",
+                "«Волчки» => «Карусели»", "«Волчков» => «Каруселей»"
+            });
+            AddGroup(groups, "classic", "Холодец", "Кисель", new string[]
+            {
+                "«Холодец» => «Кисель»", "«Холодца» => «Киселя»", "«Холодцу» => «Киселю»",
+                "«Холодцы» => «Кисели»", "«Холодцов» => «Киселей»"
+            });
+            AddGroup(groups, "classic", "Чайник", "Пар", new string[]
+            {
+                "«Чайник» => «Пар»", "«Чайника» => «Пара»", "«Чайнику» => «Пару»", "«Чайнике» => «Паре»"
+            });
+            AddGroup(groups, "classic", "Нора", "Пузырь", new string[]
+            {
+                "«Нора» => «Пузырь»", "«Норы» => «Пузыря»", "«Нор» => «Пузырей»",
+                "«Норе» => «Пузырю»", "«Норами» => «Пузырями»"
+            });
+            AddGroup(groups, "classic", "Омут", "Воронка", new string[]
+            {
+                "«Омут» => «Воронка»", "«Омута» => «Воронки»", "«Омуту» => «Воронке»",
+                "«Омуте» => «Воронке»", "«Омуты» => «Воронки»"
+            });
+            AddNamedGroup(groups, "classic", "Старые названия артефактов", new string[]
+            {
+                "«Призрачный кристалл» => «Частотный кристалл»", "«Трещотка» => «Бенгальский огонь»", "«Комета» => «Вспышка»",
+                "«Ледяной ежик» => «Снежинка»", "«Гиря» => «Пустышка»", "«Лампочка Ильича» => «Лунный свет»",
+                "«Красный кристалл» => «Кристалл»", "«Огонек» => «Огненный шар»", "«Пиявка» => «Капля»",
+                "«Ветка Калины» => «Мамины бусы»", "«Гребешок» => «Глаз»", "«Жар-птица» => «Пламя»",
+                "«Ягодка» => «Кровь камня»", "«Сало» => «Ломоть мяса»", "«Сердце» => «Душа»",
+                "«Гантель» => «Пружина»", "«Кислотный кристалл» => «Кислый кристалл»", "«Флегма» => «Слизь»",
+                "«Скорлупа» => «Слизняк»", "«Чернильница» => «Слюда»", "«Змеиный глаз» => «Светляк»",
+                "«Жвачка» => «Пузырь»", "«Ряска» => «Пленка»", "«Репях» => «Колючка»",
+                "«Липкий репях» => «Кристальная колючка»", "«Ершик» => «Морской еж»", "«Ежик» => «Колобок»",
+                "«Стальной Ежик» => «Стальной колобок»", "«Роза» => «Каменный цветок»", "«Цибуля» => «Медуза»",
+                "«Проклятая роза» => «Темная медуза»", "«Белая роза» => «Ночная звезда»", "«Протоцибуля» => «Протомедуза»",
+                "«Вехотка» => «Выверт»", "«Прима» => «Грави»", "«Креветка» => «Золотая рыбка»",
+                "«Золотистая Прима» => «Золотистый грави»", "«Темный кристалл» => «Черный кристалл»"
+            });
             return groups;
         }
 
-        private static void AddGroup(List<SnippetItem> groups, string from, string to, string[] lines)
+        private static void AddNamedGroup(List<SnippetItem> groups, string category, string name, string[] lines)
         {
             var item = new SnippetItem
             {
-                Text = from + " => " + to + " (все формы)",
-                Lines = lines
+                Text = "[" + Label(category) + "] " + name,
+                Lines = lines,
+                IsGroup = true
             };
             groups.Add(item);
+        }
+
+        private static void AddGroup(List<SnippetItem> groups, string category, string from, string to, string[] lines)
+        {
+            var item = new SnippetItem
+            {
+                Text = "[" + Label(category) + "] " + from + " => " + to + " (все формы)",
+                Lines = lines,
+                IsGroup = true
+            };
+            groups.Add(item);
+        }
+
+        private static string Label(string category)
+        {
+            return category == "fun" ? "Fun" : "Classic";
         }
 
         private static List<SnippetItem> LoadSnippets()
@@ -426,7 +497,11 @@ namespace ScLang
                 {
                     int eq = line.IndexOf('=');
                     if (eq > 0)
-                        list.Add(new SnippetItem { Text = line.Substring(0, eq).Trim() + " = " + line.Substring(eq + 1).Trim(), IsExact = true });
+                    {
+                        string prefix = current.StartsWith("fun") ? "[Fun exact] " : "[Classic exact] ";
+                        string body = line.Substring(0, eq).Trim() + " = " + line.Substring(eq + 1).Trim();
+                        list.Add(new SnippetItem { Text = prefix + body, InsertText = body, IsExact = true });
+                    }
                 }
                 else
                 {
@@ -437,7 +512,9 @@ namespace ScLang
                         string rest = line.Substring(arrow + 2).Trim();
                         int except = rest.IndexOf("||", StringComparison.Ordinal);
                         if (except >= 0) rest = rest.Substring(0, except).Trim();
-                        list.Add(new SnippetItem { Text = from + " => " + rest });
+                        string prefix = current.StartsWith("fun") ? "[Fun] " : "[Classic] ";
+                        string body = from + " => " + rest;
+                        list.Add(new SnippetItem { Text = prefix + body, InsertText = body });
                     }
                 }
             }
@@ -479,16 +556,32 @@ namespace ScLang
 
             var snippetBar = new Panel { Dock = DockStyle.Top, Height = 34, Padding = new Padding(0, 4, 0, 2) };
             var snippetLabel = new Label { Text = "Готовые:", Left = 0, Top = 7, Width = 62, TextAlign = ContentAlignment.MiddleLeft };
-            _snippet.Left = 64;
+
+            _snippetFilter.Left = 64;
+            _snippetFilter.Top = 5;
+            _snippetFilter.Width = 110;
+            _snippetFilter.DropDownStyle = ComboBoxStyle.DropDownList;
+            _snippetFilter.Items.Add("Все");
+            _snippetFilter.Items.Add("Формы");
+            _snippetFilter.Items.Add("Classic");
+            _snippetFilter.Items.Add("Fun");
+            _snippetFilter.Items.Add("Classic exact");
+            _snippetFilter.Items.Add("Fun exact");
+            _snippetFilter.SelectedIndex = 0;
+            _snippetFilter.SelectedIndexChanged += delegate { ApplySnippetFilter(); };
+
+            _snippet.Left = 180;
             _snippet.Top = 5;
-            _snippet.Width = 360;
+            _snippet.Width = 240;
             _snippet.DropDownStyle = ComboBoxStyle.DropDownList;
-            List<SnippetItem> snippets = LoadSnippets();
-            foreach (SnippetItem snippet in snippets) _snippet.Items.Add(snippet);
-            if (_snippet.Items.Count > 0) _snippet.SelectedIndex = 0;
+
+            _allSnippets = LoadSnippets();
+            ApplySnippetFilter();
+
             var insertButton = new Button { Text = "Вставить", Left = 430, Top = 4, Width = 90, Height = 26 };
             insertButton.Click += delegate { InsertSnippet(); };
             snippetBar.Controls.Add(snippetLabel);
+            snippetBar.Controls.Add(_snippetFilter);
             snippetBar.Controls.Add(_snippet);
             snippetBar.Controls.Add(insertButton);
 
@@ -531,6 +624,29 @@ namespace ScLang
             ThemeRuntime.Apply(this);
         }
 
+        private void ApplySnippetFilter()
+        {
+            if (_allSnippets == null) return;
+            string filter = _snippetFilter.SelectedItem as string;
+            _snippet.Items.Clear();
+            foreach (SnippetItem snippet in _allSnippets)
+            {
+                if (filter == null || filter == "Все" || MatchesFilter(snippet, filter))
+                    _snippet.Items.Add(snippet);
+            }
+            if (_snippet.Items.Count > 0) _snippet.SelectedIndex = 0;
+        }
+
+        private static bool MatchesFilter(SnippetItem snippet, string filter)
+        {
+            if (filter == "Формы") return snippet.IsGroup;
+            if (filter == "Classic exact") return snippet.Text.StartsWith("[Classic exact]", StringComparison.OrdinalIgnoreCase);
+            if (filter == "Fun exact") return snippet.Text.StartsWith("[Fun exact]", StringComparison.OrdinalIgnoreCase);
+            if (filter == "Classic") return snippet.Text.StartsWith("[Classic]", StringComparison.OrdinalIgnoreCase) && !snippet.IsExact;
+            if (filter == "Fun") return snippet.Text.StartsWith("[Fun]", StringComparison.OrdinalIgnoreCase) && !snippet.IsExact;
+            return true;
+        }
+
         private void InsertSnippet()
         {
             SnippetItem snippet = _snippet.SelectedItem as SnippetItem;
@@ -546,7 +662,7 @@ namespace ScLang
             }
             else
             {
-                text += snippet.Text;
+                text += snippet.InsertText != null ? snippet.InsertText : snippet.Text;
             }
 
             target.Text = text;

@@ -99,11 +99,13 @@ namespace ScLang
         private AppSettings _settings;
         private ThemePalette _palette;
 
+        public const string Version = "0.5.1";
+
         public MainForm()
         {
             _settings = AppSettings.Load();
 
-            Text = "SC Lang — редактор локализации";
+            Text = "SC Lang " + Version + " — редактор локализации";
             Width = Math.Max(900, _settings.WindowWidth);
             Height = Math.Max(600, _settings.WindowHeight);
             MinimumSize = new Size(900, 600);
@@ -247,6 +249,7 @@ namespace ScLang
             _statusLabel.Spring = true;
             _statusLabel.TextAlign = ContentAlignment.MiddleLeft;
             status.Items.Add(_statusLabel);
+            status.Items.Add(new ToolStripStatusLabel("v" + Version));
 
             Controls.Add(_grid);
             Controls.Add(_topPanel);
@@ -423,7 +426,7 @@ namespace ScLang
         private void RebuildPresetCombo()
         {
             _presetCombo.Items.Clear();
-            _presetCombo.Items.Add(new PresetItem { Section = "classic", Display = "Классика — знакомые названия" });
+            _presetCombo.Items.Add(new PresetItem { Section = "classic", Display = "Классика — старые названия" });
             _presetCombo.Items.Add(new PresetItem { Section = "fun", Display = "Fun — смешные названия" });
             foreach (CustomPreset preset in _customPresets)
             {

@@ -32,7 +32,7 @@ namespace ScLang
             if (!File.Exists(AppSettings.FilePath) && string.Equals(_settings.Theme, "light", StringComparison.OrdinalIgnoreCase))
                 _settings.Theme = "exbo";
 
-            Text = "SC Lang — первый запуск";
+            Text = "SC Lang " + MainForm.Version + " — первый запуск";
             Width = 900;
             Height = 590;
             MinimumSize = new Size(820, 540);
