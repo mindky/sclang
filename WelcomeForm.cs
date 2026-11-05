@@ -86,7 +86,10 @@ namespace ScLang
             _themeCombo.Items.Add(new ThemeChoice { Key = "light", Label = "Светлая" });
             _themeCombo.Items.Add(new ThemeChoice { Key = "dark", Label = "Тёмная" });
             _themeCombo.Items.Add(new ThemeChoice { Key = "oled", Label = "OLED (чёрная)" });
-            _themeCombo.Items.Add(new ThemeChoice { Key = "exbo", Label = "EXBO Launcher" });
+            _themeCombo.Items.Add(new ThemeChoice { Key = "exbolight", Label = "Exbo (светлая)" });
+            _themeCombo.Items.Add(new ThemeChoice { Key = "exbodark", Label = "Exbo (тёмная)" });
+            _themeCombo.Items.Add(new ThemeChoice { Key = "exbo", Label = "Exbo (Launcher)" });
+            _themeCombo.Items.Add(new ThemeChoice { Key = "stalzone", Label = "STALZONE" });
             _themeCombo.Items.Add(new ThemeChoice { Key = "custom", Label = "Своя" });
             SelectTheme(_settings.Theme);
             _themeCombo.SelectedIndexChanged += delegate
@@ -166,7 +169,7 @@ namespace ScLang
                     return;
                 }
             }
-            _themeCombo.SelectedIndex = 3;
+            _themeCombo.SelectedIndex = 5;
         }
 
         private void ApplyWelcomeTheme()

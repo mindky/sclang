@@ -278,6 +278,171 @@ namespace ScLang
         private readonly TextBox _nameBox = new TextBox();
         private readonly TextBox _rulesBox = new TextBox();
         private readonly TextBox _exactBox = new TextBox();
+        private readonly ComboBox _snippet = new ComboBox();
+        private TabControl _tabs;
+
+        private sealed class SnippetItem
+        {
+            public string Text;
+            public bool IsExact;
+            public string[] Lines;
+
+            public override string ToString()
+            {
+                return Text;
+            }
+        }
+
+        private static List<SnippetItem> BuildFormGroups()
+        {
+            var groups = new List<SnippetItem>();
+            AddGroup(groups, "Рубеж", "Долг", new string[]
+            {
+                "Рубеж => Долг", "Рубежа => Долга", "Рубежу => Долгу",
+                "Рубежем => Долгом", "Рубеже => Долге", "Рубежи => Долги", "Рубежом => Долгом"
+            });
+            AddGroup(groups, "Заря", "Свобода", new string[]
+            {
+                "Заря => Свобода", "Зари => Свободы", "Заре => Свободе",
+                "Зарю => Свободу", "Зарей => Свободой", "Зарёй => Свободой"
+            });
+            AddGroup(groups, "Обочина", "Кордон", new string[]
+            {
+                "Обочина => Кордон", "Обочины => Кордона", "Обочине => Кордоне",
+                "Обочину => Кордон", "Обочиной => Кордоном", "Обочинам => Кордонам",
+                "Обочинами => Кордонами", "Обочинах => Кордонах"
+            });
+            AddGroup(groups, "Приток", "Припять", new string[]
+            {
+                "Приток => Припять", "Притока => Припяти", "Притоку => Припяти",
+                "Притоком => Припятью", "Притоке => Припяти"
+            });
+            AddGroup(groups, "Институт", "Инсульт", new string[]
+            {
+                "Институт => Инсульт", "Института => Инсульта", "Институту => Инсульту",
+                "Институтом => Инсультом", "Институте => Инсульте", "Институты => Инсульты"
+            });
+            AddGroup(groups, "Кузня-11", "Кухня-11", new string[]
+            {
+                "Кузня-11 => Кухня-11", "Кузни-11 => Кухни-11", "Кузне-11 => Кухне-11",
+                "Кузню-11 => Кухню-11", "Кузней-11 => Кухней-11"
+            });
+            AddGroup(groups, "Барьер", "БульБуль", new string[]
+            {
+                "Барьер => БульБуль", "Барьера => БульБуля", "Барьеру => БульБулю",
+                "Барьером => БульБулем", "Барьере => БульБуле"
+            });
+            AddGroup(groups, "Бестия", "Химера", new string[]
+            {
+                "Бестия => Химера", "Бестии => Химеры", "Бестию => Химеру", "Бестией => Химерой"
+            });
+            AddGroup(groups, "Шавка", "Слепой пёс", new string[]
+            {
+                "Шавка => Слепой пёс", "Шавки => Слепого пса", "Шавку => Слепого пса",
+                "Шавкой => Слепым псом", "Шавок => Слепых псов"
+            });
+            AddGroup(groups, "Хрюша", "Плоть", new string[]
+            {
+                "Хрюша => Плоть", "Хрюши => Плоти", "Хрюшу => Плоть",
+                "Хрюшей => Плотью", "Хрюш => Плотей"
+            });
+            AddGroup(groups, "Упырь", "Кровосос", new string[]
+            {
+                "Упырь => Кровосос", "Упыря => Кровососа", "Упырю => Кровососу",
+                "Упырём => Кровососом", "Упыре => Кровососе", "Упыри => Кровососы", "Упырей => Кровососов"
+            });
+            AddGroup(groups, "Дикая гончая", "Псевдопёс", new string[]
+            {
+                "Дикая гончая => Псевдопёс", "Дикой гончей => Псевдопса", "Дикую гончую => Псевдопса",
+                "Дикие гончие => Псевдопсы", "Диких гончих => Псевдопсов"
+            });
+            AddGroup(groups, "Бурелом", "Псевдогигант", new string[]
+            {
+                "Бурелом => Псевдогигант", "Бурелома => Псевдогиганта", "Бурелому => Псевдогиганту",
+                "Буреломом => Псевдогигантом", "Буреломе => Псевдогиганте", "Буреломы => Псевдогиганты"
+            });
+            AddGroup(groups, "Пси-гончая", "Пси-собака", new string[]
+            {
+                "Пси-гончая => Пси-собака", "Пси-гончей => Пси-собаки", "Пси-гончие => Пси-собаки"
+            });
+            AddGroup(groups, "Шнырь", "Снорк", new string[]
+            {
+                "Шнырь => Снорк", "Шныря => Снорка", "Шнырю => Снорку",
+                "Шнырём => Снорком", "Шныре => Снорке", "Шныри => Снорки", "Шнырей => Снорков"
+            });
+            AddGroup(groups, "Крыса", "Тушкан", new string[]
+            {
+                "Крыса => Тушкан", "Крысы => Тушкана", "Крысу => Тушкана",
+                "Крысой => Тушканом", "Крыс => Тушканов"
+            });
+            AddGroup(groups, "Свалка техники", "Свалка", new string[]
+            {
+                "Свалка техники => Свалка", "Свалки техники => Свалки", "Свалке техники => Свалке",
+                "Свалку техники => Свалку", "Свалкой техники => Свалкой"
+            });
+            AddGroup(groups, "Храмовая топь", "Храбрая топь", new string[]
+            {
+                "Храмовая топь => Храбрая топь", "Храмовой топи => Храброй топи",
+                "Храмовую топь => Храбрую топь", "Храмовой топью => Храброй топью"
+            });
+            return groups;
+        }
+
+        private static void AddGroup(List<SnippetItem> groups, string from, string to, string[] lines)
+        {
+            var item = new SnippetItem
+            {
+                Text = from + " => " + to + " (все формы)",
+                Lines = lines
+            };
+            groups.Add(item);
+        }
+
+        private static List<SnippetItem> LoadSnippets()
+        {
+            var list = new List<SnippetItem>();
+            list.AddRange(BuildFormGroups());
+            string file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "presets.txt");
+            if (!File.Exists(file))
+            {
+                list.Add(new SnippetItem { Text = "База «Рубежа» => База «Долга»" });
+                list.Add(new SnippetItem { Text = "Обочина => Кордон" });
+                list.Add(new SnippetItem { Text = "Институт => Инсульт" });
+                return list;
+            }
+
+            string current = null;
+            foreach (string raw in File.ReadAllLines(file, Encoding.UTF8))
+            {
+                string line = raw.Trim();
+                if (line.Length == 0 || line.StartsWith("#")) continue;
+                if (line.StartsWith("[") && line.EndsWith("]"))
+                {
+                    current = line.Substring(1, line.Length - 2).Trim().ToLowerInvariant();
+                    continue;
+                }
+                if (current == null) continue;
+                if (current.EndsWith(".exact"))
+                {
+                    int eq = line.IndexOf('=');
+                    if (eq > 0)
+                        list.Add(new SnippetItem { Text = line.Substring(0, eq).Trim() + " = " + line.Substring(eq + 1).Trim(), IsExact = true });
+                }
+                else
+                {
+                    int arrow = line.IndexOf("=>", StringComparison.Ordinal);
+                    if (arrow > 0)
+                    {
+                        string from = line.Substring(0, arrow).Trim();
+                        string rest = line.Substring(arrow + 2).Trim();
+                        int except = rest.IndexOf("||", StringComparison.Ordinal);
+                        if (except >= 0) rest = rest.Substring(0, except).Trim();
+                        list.Add(new SnippetItem { Text = from + " => " + rest });
+                    }
+                }
+            }
+            return list;
+        }
 
         public PresetEditorForm(CustomPreset preset)
         {
@@ -295,6 +460,7 @@ namespace ScLang
             _nameBox.Text = _preset.Name;
 
             var tabs = new TabControl { Left = 12, Top = 46, Width = 720, Height = 450 };
+            _tabs = tabs;
             tabs.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
 
             var rulesPage = new TabPage("Замены");
@@ -310,7 +476,24 @@ namespace ScLang
             _rulesBox.WordWrap = false;
             _rulesBox.Dock = DockStyle.Fill;
             _rulesBox.Text = RulesToText(_preset.Rules);
+
+            var snippetBar = new Panel { Dock = DockStyle.Top, Height = 34, Padding = new Padding(0, 4, 0, 2) };
+            var snippetLabel = new Label { Text = "Готовые:", Left = 0, Top = 7, Width = 62, TextAlign = ContentAlignment.MiddleLeft };
+            _snippet.Left = 64;
+            _snippet.Top = 5;
+            _snippet.Width = 360;
+            _snippet.DropDownStyle = ComboBoxStyle.DropDownList;
+            List<SnippetItem> snippets = LoadSnippets();
+            foreach (SnippetItem snippet in snippets) _snippet.Items.Add(snippet);
+            if (_snippet.Items.Count > 0) _snippet.SelectedIndex = 0;
+            var insertButton = new Button { Text = "Вставить", Left = 430, Top = 4, Width = 90, Height = 26 };
+            insertButton.Click += delegate { InsertSnippet(); };
+            snippetBar.Controls.Add(snippetLabel);
+            snippetBar.Controls.Add(_snippet);
+            snippetBar.Controls.Add(insertButton);
+
             rulesPage.Controls.Add(_rulesBox);
+            rulesPage.Controls.Add(snippetBar);
             rulesPage.Controls.Add(rulesHint);
 
             var exactPage = new TabPage("Точные значения");
@@ -346,6 +529,29 @@ namespace ScLang
             CancelButton = cancel;
 
             ThemeRuntime.Apply(this);
+        }
+
+        private void InsertSnippet()
+        {
+            SnippetItem snippet = _snippet.SelectedItem as SnippetItem;
+            if (snippet == null) return;
+            TextBox target = snippet.IsExact ? _exactBox : _rulesBox;
+            if (_tabs != null) _tabs.SelectedIndex = snippet.IsExact ? 1 : 0;
+            string text = target.Text;
+            if (text.Length > 0 && !text.EndsWith("\r\n") && !text.EndsWith("\n")) text += "\r\n";
+
+            if (snippet.Lines != null && snippet.Lines.Length > 0)
+            {
+                text += string.Join("\r\n", snippet.Lines);
+            }
+            else
+            {
+                text += snippet.Text;
+            }
+
+            target.Text = text;
+            target.SelectionStart = text.Length;
+            target.ScrollToCaret();
         }
 
         private void SavePreset()

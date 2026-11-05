@@ -29,6 +29,9 @@ namespace ScLang
                 case "dark": return Dark();
                 case "oled": return Oled();
                 case "exbo": return Exbo();
+                case "exbolight": return ExboLight();
+                case "exbodark": return ExboDark();
+                case "stalzone": return Stalzone();
                 case "custom": return Custom(settings);
                 default: return Light();
             }
@@ -115,6 +118,69 @@ namespace ScLang
                 ButtonText = Color.FromArgb(240, 245, 250),
                 Border = Color.FromArgb(70, 81, 94),
                 Accent = Color.FromArgb(182, 58, 58)
+            };
+        }
+
+        public static ThemePalette ExboLight()
+        {
+            return new ThemePalette
+            {
+                Form = Color.FromArgb(246, 250, 253),
+                Panel = Color.FromArgb(255, 255, 255),
+                Cell = Color.White,
+                Grid = Color.FromArgb(233, 236, 239),
+                AltCell = Color.FromArgb(241, 246, 251),
+                Text = Color.FromArgb(33, 37, 41),
+                Header = Color.FromArgb(228, 242, 252),
+                HeaderText = Color.FromArgb(11, 42, 58),
+                Selection = Color.FromArgb(64, 198, 255),
+                SelectionText = Color.FromArgb(8, 51, 68),
+                Button = Color.White,
+                ButtonText = Color.FromArgb(33, 37, 41),
+                Border = Color.FromArgb(222, 226, 230),
+                Accent = Color.FromArgb(64, 198, 255)
+            };
+        }
+
+        public static ThemePalette ExboDark()
+        {
+            return new ThemePalette
+            {
+                Form = Color.FromArgb(33, 37, 41),
+                Panel = Color.FromArgb(43, 48, 53),
+                Cell = Color.FromArgb(38, 43, 47),
+                Grid = Color.FromArgb(24, 27, 29),
+                AltCell = Color.FromArgb(44, 47, 51),
+                Text = Color.FromArgb(236, 246, 255),
+                Header = Color.FromArgb(52, 58, 64),
+                HeaderText = Color.FromArgb(240, 248, 255),
+                Selection = Color.FromArgb(64, 198, 255),
+                SelectionText = Color.FromArgb(4, 34, 46),
+                Button = Color.FromArgb(52, 58, 64),
+                ButtonText = Color.FromArgb(240, 248, 255),
+                Border = Color.FromArgb(73, 80, 87),
+                Accent = Color.FromArgb(64, 198, 255)
+            };
+        }
+
+        public static ThemePalette Stalzone()
+        {
+            return new ThemePalette
+            {
+                Form = Color.FromArgb(10, 10, 10),
+                Panel = Color.FromArgb(18, 18, 18),
+                Cell = Color.FromArgb(24, 24, 24),
+                Grid = Color.FromArgb(0, 0, 0),
+                AltCell = Color.FromArgb(26, 26, 26),
+                Text = Color.FromArgb(236, 231, 225),
+                Header = Color.FromArgb(31, 31, 31),
+                HeaderText = Color.FromArgb(236, 231, 225),
+                Selection = Color.FromArgb(233, 25, 50),
+                SelectionText = Color.White,
+                Button = Color.FromArgb(24, 24, 24),
+                ButtonText = Color.FromArgb(236, 231, 225),
+                Border = Color.FromArgb(46, 45, 45),
+                Accent = Color.FromArgb(233, 25, 50)
             };
         }
 

@@ -365,7 +365,10 @@ namespace ScLang
         {
             using (var form = new SettingsForm(_settings))
             {
-                if (form.ShowDialog(this) == DialogResult.OK) ApplyTheme();
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    ApplyTheme();
+                }
             }
         }
 
