@@ -39,6 +39,7 @@ namespace ScLang
             StartPosition = FormStartPosition.CenterScreen;
             try { Font = new Font("Segoe UI", 9f); } catch { }
             try { Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
+            NativeUi.DarkTitleBar(this);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
 

@@ -135,6 +135,7 @@ namespace ScLang
             CancelButton = cancel;
 
             ThemeRuntime.Apply(this);
+            NativeUi.DarkTitleBar(this);
             UpdateCustomState();
             RefreshColorButtons();
             RefreshPreview();

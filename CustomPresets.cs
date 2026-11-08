@@ -206,6 +206,7 @@ namespace ScLang
             Controls.Add(hint);
 
             ThemeRuntime.Apply(this);
+            NativeUi.DarkTitleBar(this);
             Reload();
         }
 
@@ -280,6 +281,8 @@ namespace ScLang
         private readonly TextBox _exactBox = new TextBox();
         private readonly ComboBox _snippet = new ComboBox();
         private readonly ComboBox _snippetFilter = new ComboBox();
+        private readonly Label _snippetLabel = new Label();
+        private readonly TextBox _previewBox = new TextBox();
         private List<SnippetItem> _allSnippets;
         private TabControl _tabs;
 
@@ -555,11 +558,15 @@ namespace ScLang
             _rulesBox.Text = RulesToText(_preset.Rules);
 
             var snippetBar = new Panel { Dock = DockStyle.Top, Height = 34, Padding = new Padding(0, 4, 0, 2) };
-            var snippetLabel = new Label { Text = "Готовые:", Left = 0, Top = 7, Width = 62, TextAlign = ContentAlignment.MiddleLeft };
+            _snippetLabel.Text = "Готовые:";
+            _snippetLabel.Left = 0;
+            _snippetLabel.Top = 7;
+            _snippetLabel.Width = 128;
+            _snippetLabel.TextAlign = ContentAlignment.MiddleLeft;
 
-            _snippetFilter.Left = 64;
+            _snippetFilter.Left = 132;
             _snippetFilter.Top = 5;
-            _snippetFilter.Width = 110;
+            _snippetFilter.Width = 100;
             _snippetFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             _snippetFilter.Items.Add("Все");
             _snippetFilter.Items.Add("Формы");
@@ -570,22 +577,39 @@ namespace ScLang
             _snippetFilter.SelectedIndex = 0;
             _snippetFilter.SelectedIndexChanged += delegate { ApplySnippetFilter(); };
 
-            _snippet.Left = 180;
+            _snippet.Left = 236;
             _snippet.Top = 5;
-            _snippet.Width = 240;
+            _snippet.Width = 270;
             _snippet.DropDownStyle = ComboBoxStyle.DropDownList;
+            _snippet.DropDownWidth = 520;
+            _snippet.SelectedIndexChanged += delegate { UpdateSnippetInfo(); };
 
             _allSnippets = LoadSnippets();
             ApplySnippetFilter();
 
-            var insertButton = new Button { Text = "Вставить", Left = 430, Top = 4, Width = 90, Height = 26 };
+            var insertButton = new Button { Text = "Вставить", Left = 512, Top = 4, Width = 90, Height = 26 };
             insertButton.Click += delegate { InsertSnippet(); };
-            snippetBar.Controls.Add(snippetLabel);
+            snippetBar.Controls.Add(_snippetLabel);
             snippetBar.Controls.Add(_snippetFilter);
             snippetBar.Controls.Add(_snippet);
             snippetBar.Controls.Add(insertButton);
 
+            var infoPanel = new Panel { Dock = DockStyle.Top, Height = 62, Padding = new Padding(0, 2, 0, 2) };
+            _previewBox = new TextBox
+            {
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                Left = 0,
+                Top = 2,
+                Width = 620,
+                Height = 54,
+                Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right
+            };
+            infoPanel.Controls.Add(_previewBox);
+
             rulesPage.Controls.Add(_rulesBox);
+            rulesPage.Controls.Add(infoPanel);
             rulesPage.Controls.Add(snippetBar);
             rulesPage.Controls.Add(rulesHint);
 
@@ -622,6 +646,7 @@ namespace ScLang
             CancelButton = cancel;
 
             ThemeRuntime.Apply(this);
+            NativeUi.DarkTitleBar(this);
         }
 
         private void ApplySnippetFilter()
@@ -668,6 +693,47 @@ namespace ScLang
             target.Text = text;
             target.SelectionStart = text.Length;
             target.ScrollToCaret();
+
+            if (_allSnippets != null) _allSnippets.Remove(snippet);
+            ApplySnippetFilter();
+        }
+
+        private void UpdateSnippetInfo()
+        {
+            SnippetItem snippet = _snippet.SelectedItem as SnippetItem;
+            if (snippet == null)
+            {
+                _snippetLabel.Text = "Готовые:";
+                _previewBox.Text = string.Empty;
+                return;
+            }
+            string body = snippet.Lines != null && snippet.Lines.Length > 0
+                ? string.Join("\r\n", snippet.Lines)
+                : (snippet.InsertText != null ? snippet.InsertText : snippet.Text);
+            _previewBox.Text = body;
+            string category = CategoryFor(snippet);
+            _snippetLabel.Text = string.Equals(category, "Локации", StringComparison.Ordinal) ? "Готовые:" : "Готовые: " + category;
+        }
+
+        private static string CategoryFor(SnippetItem snippet)
+        {
+            if (snippet == null) return "—";
+            if (snippet.IsExact) return "Точные значения";
+
+            string clean = snippet.Text;
+            int bracket = clean.IndexOf(']');
+            if (bracket >= 0) clean = clean.Substring(bracket + 1).Trim();
+            int arrow = clean.IndexOf("=>", StringComparison.Ordinal);
+            string from = arrow > 0 ? clean.Substring(0, arrow).Trim() : clean;
+
+            string[] anomalies = { "Разряд", "Зажигалка", "Волчок", "Холодец", "Чайник", "Нора", "Омут", "Пекло", "Зеркало", "Батут", "Застой", "Электра", "Жарка", "Карусель", "Кисель", "Пар", "Пузырь", "Воронка" };
+            string[] mutants = { "Бестия", "Химера", "Шавка", "Слепой пёс", "Хрюша", "Плоть", "Упырь", "Кровосос", "Дикая гончая", "Псевдопёс", "Бурелом", "Псевдогигант", "Пси-гончая", "Пси-собака", "Шнырь", "Снорк", "Крыса", "Тушкан", "Кабан", "Дух" };
+            string[] artifacts = { "Призрачный кристалл", "Трещотка", "Комета", "Ледяной ежик", "Гиря", "Лампочка Ильича", "Красный кристалл", "Огонек", "Пиявка", "Ветка Калины", "Гребешок", "Жар-птица", "Ягодка", "Сало", "Сердце", "Гантель", "Кислотный кристалл", "Флегма", "Скорлупа", "Чернильница", "Змеиный глаз", "Жвачка", "Ряска", "Репях", "Липкий репях", "Ершик", "Ежик", "Стальной Ежик", "Роза", "Цибуля", "Проклятая роза", "Белая роза", "Протоцибуля", "Вехотка", "Прима", "Креветка", "Золотистая Прима", "Темный кристалл", "Артефакт" };
+
+            foreach (string word in anomalies) if (from.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0) return "Аномалии";
+            foreach (string word in mutants) if (from.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0) return "Мутанты";
+            foreach (string word in artifacts) if (from.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0) return "Артефакты";
+            return "Локации";
         }
 
         private void SavePreset()

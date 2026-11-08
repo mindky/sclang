@@ -71,6 +71,8 @@ namespace ScLang
         private readonly Dictionary<string, List<PresetRule>> _presets = new Dictionary<string, List<PresetRule>>();
         private readonly Dictionary<string, Dictionary<string, string>> _exact = new Dictionary<string, Dictionary<string, string>>();
         private readonly List<CustomPreset> _customPresets = new List<CustomPreset>();
+        private readonly Dictionary<string, string> _variantTargets = new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly Random _variantRandom = new Random();
 
         private string _path;
         private Encoding _encoding = new UTF8Encoding(false);
@@ -99,7 +101,7 @@ namespace ScLang
         private AppSettings _settings;
         private ThemePalette _palette;
 
-        public const string Version = "0.5.1";
+        public const string Version = "0.5.2 build 2";
 
         public MainForm()
         {
@@ -112,6 +114,7 @@ namespace ScLang
             StartPosition = FormStartPosition.CenterScreen;
             try { Font = new Font("Segoe UI", 9f); } catch { }
             try { Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
+            NativeUi.DarkTitleBar(this);
 
             BuildUi();
             ApplyTheme();
@@ -828,7 +831,11 @@ namespace ScLang
             if (item.Custom != null)
             {
                 rules = new List<PresetRule>(item.Custom.Rules);
-                rules.Sort(delegate(PresetRule a, PresetRule b) { return b.From.Length.CompareTo(a.From.Length); });
+                rules.Sort(delegate(PresetRule a, PresetRule b)
+                {
+                    if (a.From.Length != b.From.Length) return b.From.Length.CompareTo(a.From.Length);
+                    return string.CompareOrdinal(a.From, b.From);
+                });
                 exact = new Dictionary<string, string>(item.Custom.Exact, StringComparer.Ordinal);
             }
             else
@@ -844,6 +851,7 @@ namespace ScLang
             }
 
             var changesByIndex = new Dictionary<int, Change>();
+            _variantTargets.Clear();
             for (int i = 0; i < _entries.Count; i++)
             {
                 LangEntry entry = _entries[i];
@@ -889,7 +897,11 @@ namespace ScLang
                 result.AddRange(_presets["classic"]);
             if (_presets.ContainsKey(section))
                 result.AddRange(_presets[section]);
-            result.Sort(delegate(PresetRule a, PresetRule b) { return b.From.Length.CompareTo(a.From.Length); });
+            result.Sort(delegate(PresetRule a, PresetRule b)
+            {
+                if (a.From.Length != b.From.Length) return b.From.Length.CompareTo(a.From.Length);
+                return string.CompareOrdinal(a.From, b.From);
+            });
             return result;
         }
 
@@ -958,13 +970,37 @@ namespace ScLang
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        private static string ApplyRules(string value, List<PresetRule> rules)
+        private string ApplyRules(string value, List<PresetRule> rules)
         {
             string result = value;
-            foreach (PresetRule rule in rules)
+            for (int i = 0; i < rules.Count; )
             {
-                if (!string.IsNullOrEmpty(rule.Except) && result.IndexOf(rule.Except, StringComparison.Ordinal) >= 0) continue;
-                result = result.Replace(rule.From, rule.To);
+                PresetRule first = rules[i];
+                int end = i + 1;
+                while (end < rules.Count && string.Equals(rules[end].From, first.From, StringComparison.Ordinal)) end++;
+
+                var candidates = new List<PresetRule>();
+                for (int k = i; k < end; k++)
+                {
+                    PresetRule rule = rules[k];
+                    if (!string.IsNullOrEmpty(rule.Except) && result.IndexOf(rule.Except, StringComparison.Ordinal) >= 0) continue;
+                    candidates.Add(rule);
+                }
+
+                if (candidates.Count > 0)
+                {
+                    string target;
+                    if (!_variantTargets.TryGetValue(first.From, out target))
+                    {
+                        target = candidates.Count == 1
+                            ? candidates[0].To
+                            : candidates[_variantRandom.Next(candidates.Count)].To;
+                        _variantTargets[first.From] = target;
+                    }
+                    result = result.Replace(first.From, target);
+                }
+
+                i = end;
             }
             return result;
         }
