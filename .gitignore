@@ -6,3 +6,4 @@ custom_presets/
 bin/
 obj/
 release/
+*.zip

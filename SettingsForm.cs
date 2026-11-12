@@ -178,7 +178,7 @@ namespace ScLang
         private void UpdateCustomState()
         {
             _draft.Theme = SelectedThemeKey;
-            _customPanel.Enabled = true;
+            _customPanel.Enabled = string.Equals(SelectedThemeKey, "custom", StringComparison.OrdinalIgnoreCase);
             RefreshPreview();
         }
 

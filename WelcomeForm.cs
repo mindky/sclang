@@ -227,7 +227,7 @@ namespace ScLang
         private void FindFiles()
         {
             _status.Text = "Поиск .lang…";
-            Application.DoEvents();
+            _status.Refresh();
             var found = LangLocator.FindAll();
             _fileCombo.Items.Clear();
             foreach (string file in found) _fileCombo.Items.Add(new LangFileItem { Path = file });

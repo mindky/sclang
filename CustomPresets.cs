@@ -292,7 +292,10 @@ namespace ScLang
             public string InsertText;
             public bool IsExact;
             public bool IsGroup;
+            public bool IsForm;
             public string[] Lines;
+            public string Source;
+            public string Category;
 
             public override string ToString()
             {
@@ -426,7 +429,27 @@ namespace ScLang
                 "«Омут» => «Воронка»", "«Омута» => «Воронки»", "«Омуту» => «Воронке»",
                 "«Омуте» => «Воронке»", "«Омуты» => «Воронки»"
             });
-            AddNamedGroup(groups, "classic", "Старые названия артефактов", new string[]
+            AddGroup(groups, "classic", "Празднество", "Арена Русов", new string[]
+            {
+                "Празднеством => Ареной Русов",
+                "Празднестве => Арене Русов",
+                "Празднества => Арены Русов",
+                "Празднеству => Арене Русов",
+                "на Празднество => на Арену Русов",
+                "На Празднество => На Арену Русов",
+                "Празднество => Арена Русов"
+            });
+            AddGroup(groups, "classic", "Празднество", "Арена Ворона", new string[]
+            {
+                "Празднеством => Ареной Ворона",
+                "Празднестве => Арене Ворона",
+                "Празднества => Арены Ворона",
+                "Празднеству => Арене Ворона",
+                "на Празднество => на Арену Ворона",
+                "На Празднество => На Арену Ворона",
+                "Празднество => Арена Ворона"
+            });
+            AddNamedGroup(groups, "classic", "Старые названия артефактов (в тексте)", new string[]
             {
                 "«Призрачный кристалл» => «Частотный кристалл»", "«Трещотка» => «Бенгальский огонь»", "«Комета» => «Вспышка»",
                 "«Ледяной ежик» => «Снежинка»", "«Гиря» => «Пустышка»", "«Лампочка Ильича» => «Лунный свет»",
@@ -442,15 +465,49 @@ namespace ScLang
                 "«Вехотка» => «Выверт»", "«Прима» => «Грави»", "«Креветка» => «Золотая рыбка»",
                 "«Золотистая Прима» => «Золотистый грави»", "«Темный кристалл» => «Черный кристалл»"
             });
+            AddExactGroup(groups, "Старые названия артефактов (имена)", new string[]
+            {
+                "item.art.electra_crystal.name=Частотный кристалл", "item.art.electra_bengal.name=Бенгальский огонь", "item.art.electra_vspyshka.name=Вспышка",
+                "item.art.electra_snowflake.name=Снежинка", "item.art.electra_pustishka.name=Пустышка", "item.art.electra_moonlight.name=Лунный свет",
+                "item.art.jarka_crystal.name=Кристалл", "item.art.jarka_fireball.name=Огненный шар", "item.art.jarka_kaplya.name=Капля",
+                "item.art.jarka_mamybusi.name=Мамины бусы", "item.art.jarka_glaz.name=Глаз", "item.art.jarka_plamya.name=Пламя",
+                "item.art.karousel_bloodstone.name=Кровь камня", "item.art.karousel_lomot.name=Ломоть мяса", "item.art.karousel_dusha.name=Душа",
+                "item.art.karousel_prujina.name=Пружина", "item.art.kisel_crystal.name=Кислый кристалл", "item.art.kisel_sliz.name=Слизь",
+                "item.art.kisel_sliznyak.name=Слизняк", "item.art.kisel_slyda.name=Слюда", "item.art.kisel_svetlyak.name=Светляк",
+                "item.art.kisel_puzir.name=Пузырь", "item.art.kisel_plenka.name=Пленка", "item.art.puh_koluchka.name=Колючка",
+                "item.art.puh_kkoluchka.name=Кристальная колючка", "item.art.puh_ej.name=Морской еж", "item.art.puh_kolobok.name=Колобок",
+                "item.art.puh_steelkolobok.name=Стальной колобок", "item.art.trampoline_kamencvet.name=Каменный цветок", "item.art.trampoline_meduza.name=Медуза",
+                "item.art.trampoline_darkmeduza.name=Темная медуза", "item.art.trampoline_nightstar.name=Ночная звезда", "item.art.trampoline_protomeduza.name=Протомедуза",
+                "item.art.voronka_vivert.name=Выверт", "item.art.voronka_gravi.name=Грави", "item.art.voronka_goldfish.name=Золотая рыбка",
+                "item.art.voronka_goldgravi.name=Золотистый грави", "item.art.voronka_crystal.name=Черный кристалл"
+            });
             return groups;
         }
 
         private static void AddNamedGroup(List<SnippetItem> groups, string category, string name, string[] lines)
         {
+            string cat = name.IndexOf("артефакт", StringComparison.OrdinalIgnoreCase) >= 0 ? "Артефакты" : "Формы";
             var item = new SnippetItem
             {
-                Text = "[" + Label(category) + "] " + name,
+                Source = Label(category),
+                Category = cat,
+                Text = "[" + cat + "] [" + Label(category) + "] " + name,
                 Lines = lines,
+                IsGroup = true
+            };
+            groups.Add(item);
+        }
+
+        private static void AddExactGroup(List<SnippetItem> groups, string name, string[] lines)
+        {
+            string cat = name.IndexOf("артефакт", StringComparison.OrdinalIgnoreCase) >= 0 ? "Артефакты" : "Точные значения";
+            var item = new SnippetItem
+            {
+                Source = "Classic exact",
+                Category = cat,
+                Text = "[" + cat + "] [Classic exact] " + name,
+                Lines = lines,
+                IsExact = true,
                 IsGroup = true
             };
             groups.Add(item);
@@ -460,9 +517,12 @@ namespace ScLang
         {
             var item = new SnippetItem
             {
-                Text = "[" + Label(category) + "] " + from + " => " + to + " (все формы)",
+                Source = Label(category),
+                Category = "Формы",
+                Text = "[Формы] [" + Label(category) + "] " + from + " => " + to + " (все формы)",
                 Lines = lines,
-                IsGroup = true
+                IsGroup = true,
+                IsForm = true
             };
             groups.Add(item);
         }
@@ -501,9 +561,11 @@ namespace ScLang
                     int eq = line.IndexOf('=');
                     if (eq > 0)
                     {
-                        string prefix = current.StartsWith("fun") ? "[Fun exact] " : "[Classic exact] ";
-                        string body = line.Substring(0, eq).Trim() + " = " + line.Substring(eq + 1).Trim();
-                        list.Add(new SnippetItem { Text = prefix + body, InsertText = body, IsExact = true });
+                        string key = line.Substring(0, eq).Trim();
+                        string source = current.StartsWith("fun") ? "Fun exact" : "Classic exact";
+                        string cat = key.IndexOf("art.", StringComparison.Ordinal) >= 0 ? "Артефакты" : "Точные значения";
+                        string body = key + " = " + line.Substring(eq + 1).Trim();
+                        list.Add(new SnippetItem { Text = "[" + cat + "] [" + source + "] " + body, InsertText = body, IsExact = true, Source = source, Category = cat });
                     }
                 }
                 else
@@ -515,9 +577,10 @@ namespace ScLang
                         string rest = line.Substring(arrow + 2).Trim();
                         int except = rest.IndexOf("||", StringComparison.Ordinal);
                         if (except >= 0) rest = rest.Substring(0, except).Trim();
-                        string prefix = current.StartsWith("fun") ? "[Fun] " : "[Classic] ";
+                        string source = current.StartsWith("fun") ? "Fun" : "Classic";
+                        string cat = ClassifyFrom(from);
                         string body = from + " => " + rest;
-                        list.Add(new SnippetItem { Text = prefix + body, InsertText = body });
+                        list.Add(new SnippetItem { Text = "[" + cat + "] [" + source + "] " + body, InsertText = body, Source = source, Category = cat });
                     }
                 }
             }
@@ -664,11 +727,11 @@ namespace ScLang
 
         private static bool MatchesFilter(SnippetItem snippet, string filter)
         {
-            if (filter == "Формы") return snippet.IsGroup;
-            if (filter == "Classic exact") return snippet.Text.StartsWith("[Classic exact]", StringComparison.OrdinalIgnoreCase);
-            if (filter == "Fun exact") return snippet.Text.StartsWith("[Fun exact]", StringComparison.OrdinalIgnoreCase);
-            if (filter == "Classic") return snippet.Text.StartsWith("[Classic]", StringComparison.OrdinalIgnoreCase) && !snippet.IsExact;
-            if (filter == "Fun") return snippet.Text.StartsWith("[Fun]", StringComparison.OrdinalIgnoreCase) && !snippet.IsExact;
+            if (filter == "Формы") return snippet.IsForm;
+            if (filter == "Classic exact") return string.Equals(snippet.Source, "Classic exact", StringComparison.OrdinalIgnoreCase);
+            if (filter == "Fun exact") return string.Equals(snippet.Source, "Fun exact", StringComparison.OrdinalIgnoreCase);
+            if (filter == "Classic") return string.Equals(snippet.Source, "Classic", StringComparison.OrdinalIgnoreCase);
+            if (filter == "Fun") return string.Equals(snippet.Source, "Fun", StringComparison.OrdinalIgnoreCase);
             return true;
         }
 
@@ -711,20 +774,14 @@ namespace ScLang
                 ? string.Join("\r\n", snippet.Lines)
                 : (snippet.InsertText != null ? snippet.InsertText : snippet.Text);
             _previewBox.Text = body;
-            string category = CategoryFor(snippet);
+            string category = snippet.Category;
+            if (string.IsNullOrEmpty(category)) category = "Готовые:";
             _snippetLabel.Text = string.Equals(category, "Локации", StringComparison.Ordinal) ? "Готовые:" : "Готовые: " + category;
         }
 
-        private static string CategoryFor(SnippetItem snippet)
+        private static string ClassifyFrom(string from)
         {
-            if (snippet == null) return "—";
-            if (snippet.IsExact) return "Точные значения";
-
-            string clean = snippet.Text;
-            int bracket = clean.IndexOf(']');
-            if (bracket >= 0) clean = clean.Substring(bracket + 1).Trim();
-            int arrow = clean.IndexOf("=>", StringComparison.Ordinal);
-            string from = arrow > 0 ? clean.Substring(0, arrow).Trim() : clean;
+            if (string.IsNullOrEmpty(from)) return "Локации";
 
             string[] anomalies = { "Разряд", "Зажигалка", "Волчок", "Холодец", "Чайник", "Нора", "Омут", "Пекло", "Зеркало", "Батут", "Застой", "Электра", "Жарка", "Карусель", "Кисель", "Пар", "Пузырь", "Воронка" };
             string[] mutants = { "Бестия", "Химера", "Шавка", "Слепой пёс", "Хрюша", "Плоть", "Упырь", "Кровосос", "Дикая гончая", "Псевдопёс", "Бурелом", "Псевдогигант", "Пси-гончая", "Пси-собака", "Шнырь", "Снорк", "Крыса", "Тушкан", "Кабан", "Дух" };

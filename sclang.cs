@@ -101,7 +101,7 @@ namespace ScLang
         private AppSettings _settings;
         private ThemePalette _palette;
 
-        public const string Version = "0.5.2 build 2";
+        public const string Version = "0.6.0 build 1";
 
         public MainForm()
         {
@@ -188,7 +188,7 @@ namespace ScLang
                 BackColor = SystemColors.Window,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Cursor = Cursors.IBeam,
-                Anchor = AnchorStyles.Top
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
             _searchHint.Click += delegate { _searchBox.Focus(); };
 
@@ -457,7 +457,13 @@ namespace ScLang
             var item = _fileCombo.SelectedItem as LangFileItem;
             if (item == null) return;
             if (string.Equals(item.Path, _path, StringComparison.OrdinalIgnoreCase)) return;
-            if (!PromptSave()) return;
+            if (!PromptSave())
+            {
+                _loadingUi = true;
+                SelectInCombo(_path);
+                _loadingUi = false;
+                return;
+            }
             LoadFile(item.Path);
         }
 
@@ -723,6 +729,7 @@ namespace ScLang
 
                 File.WriteAllText(target, sb.ToString(), writeEncoding);
                 _path = target;
+                _settings.LastFile = target;
                 SetDirty(false);
                 RefreshFileCombo(target);
                 UpdateStatus();
@@ -758,7 +765,17 @@ namespace ScLang
             string file = System.IO.Path.Combine(Application.StartupPath, "presets.txt");
             if (!File.Exists(file))
             {
-                try { File.WriteAllText(file, DefaultPresets, new UTF8Encoding(false)); }
+                try
+                {
+                    using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("presets.txt"))
+                    {
+                        if (stream != null)
+                        {
+                            using (var reader = new StreamReader(stream, Encoding.UTF8))
+                                File.WriteAllText(file, reader.ReadToEnd(), new UTF8Encoding(false));
+                        }
+                    }
+                }
                 catch { }
             }
 
@@ -852,6 +869,10 @@ namespace ScLang
 
             var changesByIndex = new Dictionary<int, Change>();
             _variantTargets.Clear();
+            if (item.Custom == null && item.Section == "classic" && HasPrazdneystvo())
+            {
+                if (!ChooseArenaVariant(rules)) return;
+            }
             for (int i = 0; i < _entries.Count; i++)
             {
                 LangEntry entry = _entries[i];
@@ -888,6 +909,75 @@ namespace ScLang
 
             MessageBox.Show(this, "Изменено значений: " + changes.Count + ".", "SC Lang",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private bool HasPrazdneystvo()
+        {
+            for (int i = 0; i < _entries.Count; i++)
+            {
+                LangEntry entry = _entries[i];
+                if (entry.IsEntry && entry.Value != null &&
+                    entry.Value.IndexOf("Празднеств", StringComparison.Ordinal) >= 0) return true;
+            }
+            return false;
+        }
+
+        private bool ChooseArenaVariant(List<PresetRule> rules)
+        {
+            bool hasRusov = false;
+            bool hasVorona = false;
+            foreach (PresetRule rule in rules)
+            {
+                if (rule.From.IndexOf("Празднеств", StringComparison.Ordinal) < 0) continue;
+                if (rule.To.IndexOf("Русов", StringComparison.Ordinal) >= 0) hasRusov = true;
+                if (rule.To.IndexOf("Ворон", StringComparison.Ordinal) >= 0) hasVorona = true;
+            }
+            if (!hasRusov || !hasVorona) return true;
+
+            bool vorona;
+            using (var form = new Form())
+            {
+                form.Text = "Классика — старые названия";
+                form.FormBorderStyle = FormBorderStyle.FixedDialog;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.MinimizeBox = false;
+                form.MaximizeBox = false;
+                form.Width = 380;
+                form.Height = 220;
+                form.Font = Font;
+                NativeUi.DarkTitleBar(form);
+
+                var label = new Label { Text = "Празднество заменить на:", Left = 16, Top = 16, Width = 330, Height = 22 };
+                var rus = new RadioButton { Text = "Арена Русов", Left = 20, Top = 50, Width = 320, Height = 24, Checked = true };
+                var vor = new RadioButton { Text = "Арена Ворона", Left = 20, Top = 78, Width = 320, Height = 24 };
+                var ok = new Button { Text = "Применить", Left = 120, Top = 126, Width = 110, Height = 30, DialogResult = DialogResult.OK };
+                var cancel = new Button { Text = "Отмена", Left = 240, Top = 126, Width = 100, Height = 30, DialogResult = DialogResult.Cancel };
+                form.Controls.Add(label);
+                form.Controls.Add(rus);
+                form.Controls.Add(vor);
+                form.Controls.Add(ok);
+                form.Controls.Add(cancel);
+                form.AcceptButton = ok;
+                form.CancelButton = cancel;
+
+                ThemeRuntime.Apply(form, _palette);
+                rus.BackColor = Color.Transparent;
+                vor.BackColor = Color.Transparent;
+                rus.ForeColor = _palette.Text;
+                vor.ForeColor = _palette.Text;
+
+                if (form.ShowDialog(this) != DialogResult.OK) return false;
+                vorona = vor.Checked;
+            }
+
+            string want = vorona ? "Ворон" : "Русов";
+            foreach (PresetRule rule in rules)
+            {
+                if (rule.From.IndexOf("Празднеств", StringComparison.Ordinal) < 0) continue;
+                if (rule.To.IndexOf(want, StringComparison.Ordinal) < 0) continue;
+                _variantTargets[rule.From] = rule.To;
+            }
+            return true;
         }
 
         private List<PresetRule> GetRules(string section)
@@ -990,7 +1080,17 @@ namespace ScLang
                 if (candidates.Count > 0)
                 {
                     string target;
-                    if (!_variantTargets.TryGetValue(first.From, out target))
+                    bool valid = _variantTargets.TryGetValue(first.From, out target);
+                    if (valid)
+                    {
+                        bool found = false;
+                        for (int c = 0; c < candidates.Count; c++)
+                        {
+                            if (string.Equals(candidates[c].To, target, StringComparison.Ordinal)) { found = true; break; }
+                        }
+                        valid = found;
+                    }
+                    if (!valid)
                     {
                         target = candidates.Count == 1
                             ? candidates[0].To
@@ -1080,27 +1180,5 @@ namespace ScLang
             SetDirty(true);
             ApplyFilter();
         }
-
-        private const string DefaultPresets = "# SC Lang — правила замен названий\r\n" +
-            "# Формат: было => стало\r\n" +
-            "# Замены применяются к значениям всех ключей. Регистр важен.\r\n" +
-            "# Раздел [fun] автоматически включает правила [classic], затем свои.\r\n" +
-            "\r\n" +
-            "[classic]\r\n" +
-            "База «Рубежа» => База «Долга»\r\n" +
-            "База «Зари» => База «Свободы»\r\n" +
-            "Свалка техники => Свалка\r\n" +
-            "Агрокомплекс «Колос» => Агропром\r\n" +
-            "Обочина => Кордон\r\n" +
-            "Рубеж => Долг\r\n" +
-            "Заря => Свобода\r\n" +
-            "Приток => Припять\r\n" +
-            "\r\n" +
-            "[fun]\r\n" +
-            "Кузня-11 => Кухня-11\r\n" +
-            "Институт => Инсульт\r\n" +
-            "Храмовая топь => Храбрая топь\r\n" +
-            "Барьер => БульБуль\r\n" +
-            "Отражение => еинежартО\r\n";
     }
 }
