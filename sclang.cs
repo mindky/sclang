@@ -101,7 +101,7 @@ namespace ScLang
         private AppSettings _settings;
         private ThemePalette _palette;
 
-        public const string Version = "0.6.0 build 1";
+        public const string Version = "0.6.0 final";
 
         public MainForm()
         {
